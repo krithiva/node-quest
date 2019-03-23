@@ -1,0 +1,29 @@
+pipeline {
+    agent {
+        label "jenkins-nodejs"
+    }
+    environment {
+      ORG               = 'krithiva'
+      APP_NAME          = 'node-quest'
+      CHARTMUSEUM_CREDS = credentials('jenkins-x-chartmuseum')
+    }
+    stages {
+      stage('Deploy') {
+        steps {
+          container('nodejs') {
+            sh "git checkout master"
+            sh "git config --global credential.helper store"
+            sh "jx step git credentials"
+            // so we can retrieve the version in later steps
+           sh  "jx promote -b --all-auto --timeout 1h --version ${Nodejs}"
+
+          }
+        }
+      }
+    }
+    post {
+        always {
+            cleanWs()
+        }
+    }
+  }
